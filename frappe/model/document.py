@@ -17,6 +17,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.automation_engine.dispatch import run_automations
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.database.utils import commit_after_response
@@ -1703,6 +1704,7 @@ class Document(BaseDocument):
 		self.run_notifications(method)
 		run_webhooks(self, method)
 		run_server_script_for_doc_event(self, method)
+		run_automations(self, method)
 
 		return out
 
@@ -2426,7 +2428,9 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 
-		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+		tags = DocTags(self.doctype).get_tags(self.name)
+
+		return [tag for tag in tags.split(",") if tag]
 
 	def deferred_insert(self) -> None:
 		"""Push the document to redis temporarily and insert later.
