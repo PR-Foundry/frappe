@@ -28,14 +28,6 @@
 	code::-webkit-scrollbar {
 		display: none;
 	}
-
-	.fix-command {
-		background-color: #f5f7fa;
-		border-radius: 8px;
-		padding: var(--padding-sm);
-		margin-bottom: var(--margin-sm);
-		user-select: all;
-	}
 </style>
 
 <div class="error-page">
@@ -44,11 +36,7 @@
 			{{ title or _("Server Error") }}
 		</h4>
 		<div class="details">
-			<p>{{ http_status_code }} : {{ message }}</p>
-
-			{% if command %}
-			<pre class="fix-command"><code>{{ command }}</code></pre>
-			{% endif %}
+			<p>{{ http_status_code }}: {{ message }}</p>
 
 			<button class="btn btn-xs btn-secondary text-muted small view-error" >
 				{{ _("Show Error") }}

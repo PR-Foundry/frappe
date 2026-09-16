@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Button } from "frappe-ui";
-import { Phone } from "../index";
+import { Button, PhoneInput } from "frappe-ui";
 
 const phone = ref("");
 
@@ -14,7 +13,7 @@ const customers = [
 
 <template>
 	<div class="flex w-full max-w-sm flex-col gap-3">
-		<Phone v-model="phone" label="Customer phone" />
+		<PhoneInput v-model="phone" label="Customer phone" />
 		<div class="flex gap-2">
 			<Button
 				v-for="customer in customers"

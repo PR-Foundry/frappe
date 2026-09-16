@@ -22,10 +22,13 @@
 				v-if="showFileSelector && !importFile"
 				@dragover.prevent
 				@drop.prevent="(e) => uploadFile(e)"
-				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-5"
+				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-md"
 			>
 				<div v-if="showFileSelector && !uploading" class="w-4/5 lg:w-2/5 text-center">
-					<LucideCloudUpload class="size-6 stroke-1.5 text-ink-gray-6 mx-auto mb-2.5" />
+					<FeatherIcon
+						name="upload-cloud"
+						class="size-6 stroke-1.5 text-ink-gray-6 mx-auto mb-2.5"
+					/>
 					<input
 						ref="fileInput"
 						type="file"
@@ -51,7 +54,7 @@
 				</div>
 				<div
 					v-else-if="showFileSelector && uploading"
-					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-5 p-2"
+					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-md p-2"
 				>
 					<div class="space-y-2">
 						<div class="font-medium">
@@ -71,10 +74,10 @@
 			</div>
 			<div
 				v-else-if="importFile"
-				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-5"
+				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-md"
 			>
 				<div
-					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-5 p-2 flex items-center justify-between items-center"
+					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-md p-2 flex items-center justify-between items-center"
 				>
 					<div class="space-y-2">
 						<div class="font-medium leading-5 text-ink-gray-9">
@@ -84,7 +87,8 @@
 							{{ convertToKB(importFile.file_size) }}
 						</div>
 					</div>
-					<LucideTrash2
+					<FeatherIcon
+						name="trash-2"
 						class="size-4 stroke-1.5 text-ink-red-6 cursor-pointer"
 						@click="deleteFile"
 					/>
@@ -93,10 +97,14 @@
 
 			<div
 				v-else-if="showSheetSelector"
-				class="flex flex-col h-[300px] p-4 border border-dashed border-outline-gray-3 rounded-5"
+				class="flex flex-col h-[300px] p-4 border border-dashed border-outline-gray-3 rounded-md"
 			>
 				<div class="flex items-center space-x-2 text-ink-gray-7">
-					<LucideChevronLeft class="size-4 cursor-pointer" @click="backToFileSelector" />
+					<FeatherIcon
+						name="chevron-left"
+						class="size-4 cursor-pointer"
+						@click="backToFileSelector"
+					/>
 					<div>Google Sheet</div>
 				</div>
 				<div
@@ -105,7 +113,7 @@
 					<input
 						v-model="googleSheet"
 						type="text"
-						class="w-full border border-outline-gray-2 rounded-5 px-2.5 text-base"
+						class="w-full border border-outline-gray-2 rounded-md px-2.5 text-base"
 						placeholder="Add Google Sheets Link"
 					/>
 					<div class="text-ink-gray-5">
@@ -140,11 +148,12 @@
 					<template v-slot="{ open }">
 						<Button variant="ghost">
 							<template #prefix>
-								<LucideDownload class="size-4 stroke-1.5" />
+								<FeatherIcon name="download" class="size-4 stroke-1.5" />
 							</template>
 							Download CSV Template
 							<template #suffix>
-								<LucideChevronDown
+								<FeatherIcon
+									name="chevron-down"
 									:class="[
 										'w-4 h-4 stroke-1.5 ml-1 transform transition-transform',
 										open ? 'rotate-180' : '',
@@ -168,12 +177,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { DataImports, DataImport, DocField, DocType } from "./types";
-import { Badge, Button, Dropdown, FileUploadHandler, toast } from "frappe-ui";
-import LucideChevronDown from "~icons/lucide/chevron-down";
-import LucideChevronLeft from "~icons/lucide/chevron-left";
-import LucideCloudUpload from "~icons/lucide/cloud-upload";
-import LucideDownload from "~icons/lucide/download";
-import LucideTrash2 from "~icons/lucide/trash-2";
+import { Badge, Button, Dropdown, FeatherIcon, FileUploadHandler, toast } from "frappe-ui";
 import { fieldsToIgnore, getChildTableName, getBadgeColor } from "./dataImport";
 import TemplateModal from "./TemplateModal.vue";
 

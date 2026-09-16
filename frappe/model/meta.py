@@ -42,7 +42,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.caching import site_cache
-from frappe.utils.data import add_to_date, get_currency_precision, get_datetime
+from frappe.utils.data import add_to_date, get_datetime
 
 ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
@@ -546,10 +546,6 @@ class Meta(Document):
 	def _non_computed_table_doctypes(self):
 		return {field.fieldname: field.options for field in self._non_computed_table_fields}
 
-	@cached_property
-	def ignore_versioning_fields(self) -> set[str]:
-		return {df.fieldname for df in self.fields if getattr(df, "ignore_versioning", False)}
-
 	def init_field_caches(self):
 		self._fields
 		self._table_fields
@@ -748,11 +744,12 @@ class Meta(Document):
 		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
-		has_access_to = set()
+		has_access_to = []
 		roles = set(frappe.get_roles(user))
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
-				has_access_to.add(perm.permlevel)
+				if perm.permlevel not in has_access_to:
+					has_access_to.append(perm.permlevel)
 
 		return has_access_to
 
@@ -967,10 +964,8 @@ def get_field_precision(df, doc=None, currency=None):
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
-		currency_precision = get_currency_precision()
-		if currency_precision is not None:
-			precision = currency_precision
-		else:
+		precision = cint(frappe.db.get_default("currency_precision"))
+		if not precision:
 			precision = get_precision_from_currency_format(currency or get_field_currency(df, doc))
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3

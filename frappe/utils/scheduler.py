@@ -14,18 +14,13 @@ import random
 import time
 from typing import NoReturn
 
-from redis.exceptions import RedisError
-from rq.defaults import DEFAULT_WORKER_TTL
-
 import frappe
-from frappe.utils import cint, get_bench_id, get_bench_path, get_datetime, get_sites, now_datetime
-from frappe.utils.background_jobs import get_redis_conn, set_niceness
+from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
+from frappe.utils.background_jobs import set_niceness
 from frappe.utils.caching import redis_cache
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_SCHEDULER_TICK = 4 * 60
-SCHEDULER_HEARTBEAT_INTERVAL = 30
-SCHEDULER_HEARTBEAT_TTL = DEFAULT_WORKER_TTL
 
 
 def cprint(*args, **kwargs):
@@ -56,7 +51,7 @@ def start_scheduler() -> NoReturn:
 		return
 
 	while True:
-		_sleep_with_scheduler_heartbeat(sleep_duration(tick))
+		time.sleep(sleep_duration(tick))
 		enqueue_events_for_all_sites()
 
 
@@ -64,35 +59,21 @@ def _get_scheduler_lock_file() -> True:
 	return os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
 
 
-def _get_scheduler_heartbeat_key() -> str:
-	return f"{get_bench_id()}:scheduler:heartbeat"
+def is_schduler_process_running() -> bool:
+	"""Checks if any other process is holding the lock.
 
+	Note: FLOCK is held by process until it exits, this function just checks if process is
+	running or not. We can't determine if process is stuck somehwere.
+	"""
+	from filelock import FileLock, Timeout
 
-def _update_scheduler_heartbeat() -> None:
 	try:
-		get_redis_conn().set(
-			_get_scheduler_heartbeat_key(),
-			time.time(),
-			ex=SCHEDULER_HEARTBEAT_TTL,
-		)
-	except RedisError:
-		frappe.logger("scheduler").warning("Failed to update scheduler heartbeat", exc_info=True)
-
-
-def _sleep_with_scheduler_heartbeat(duration: float) -> None:
-	deadline = time.monotonic() + duration
-
-	while True:
-		_update_scheduler_heartbeat()
-		remaining = deadline - time.monotonic()
-		if remaining <= 0:
-			return
-		time.sleep(min(SCHEDULER_HEARTBEAT_INTERVAL, remaining))
-
-
-def is_scheduler_process_running() -> bool:
-	"""Check whether the scheduler is publishing a heartbeat to the shared queue Redis."""
-	return bool(get_redis_conn().exists(_get_scheduler_heartbeat_key()))
+		lock = FileLock(_get_scheduler_lock_file())
+		lock.acquire(blocking=False)
+		lock.release()
+		return False
+	except Timeout:
+		return True
 
 
 def sleep_duration(tick):
@@ -123,7 +104,6 @@ def enqueue_events_for_all_sites() -> None:
 	random.shuffle(sites)
 
 	for site in sites:
-		_update_scheduler_heartbeat()
 		try:
 			enqueue_events_for_site(site=site)
 		except Exception:

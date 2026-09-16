@@ -149,21 +149,21 @@
    "fieldname": "align_labels_right",
    "fieldtype": "Check",
    "label": "Align Labels to the Right",
-   "depends_on": "eval:!doc.print_format_builder_beta"
+   "hidden": 1
   },
   {
    "default": "0",
    "fieldname": "show_section_headings",
    "fieldtype": "Check",
    "label": "Show Section Headings",
-   "depends_on": "eval:!doc.print_format_builder_beta"
+   "hidden": 1
   },
   {
    "default": "0",
    "fieldname": "line_breaks",
    "fieldtype": "Check",
    "label": "Show Line Breaks after Sections",
-   "depends_on": "eval:!doc.print_format_builder_beta"
+   "hidden": 1
   },
   {
    "fieldname": "column_break_11",

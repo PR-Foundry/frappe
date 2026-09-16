@@ -491,7 +491,7 @@ frappe.views.Calendar = class Calendar {
 				d[target] = d[source];
 			});
 
-			if (typeof d.allDay === "undefined" && typeof me.field_map.allDay !== "string") {
+			if (typeof d.allDay === "undefined") {
 				d.allDay = me.field_map.allDay;
 			}
 

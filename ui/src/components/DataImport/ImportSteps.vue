@@ -7,8 +7,9 @@
 			}"
 			@click="emit('updateStep', 'upload', { ...data })"
 		>
-			<LucideCheck
+			<FeatherIcon
 				v-if="uploadStepCompleted"
+				name="check"
 				class="size-5 text-sm border rounded-[5px] p-0.5"
 				:class="{
 					'text-ink-base bg-surface-gray-10': onUploadStep,
@@ -33,8 +34,9 @@
 			}"
 			@click="moveToMapStep()"
 		>
-			<LucideCheck
+			<FeatherIcon
 				v-if="mapStepCompleted"
+				name="check"
 				class="size-5 text-sm border rounded-[5px] p-0.5"
 				:class="{
 					'text-ink-base bg-surface-gray-10': onMapStep,
@@ -59,8 +61,9 @@
 			}"
 			@click="moveToPreviewStep()"
 		>
-			<LucideCheck
+			<FeatherIcon
 				v-if="previewStepCompleted"
+				name="check"
 				class="size-5 text-sm border rounded-[5px] p-0.5"
 				:class="{
 					'text-ink-base bg-surface-gray-10': onPreviewStep,
@@ -82,7 +85,7 @@
 <script setup lang="ts">
 import type { DataImport } from "./types";
 import { computed } from "vue";
-import LucideCheck from "~icons/lucide/check";
+import { FeatherIcon } from "frappe-ui";
 
 const emit = defineEmits(["updateStep"]);
 

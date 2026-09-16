@@ -792,7 +792,6 @@ docfield_properties = {
 	"in_preview": "Check",
 	"bold": "Check",
 	"no_copy": "Check",
-	"ignore_versioning": "Check",
 	"ignore_xss_filter": "Check",
 	"hidden": "Check",
 	"collapsible": "Check",

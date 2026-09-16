@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-if="!isSidebarCollapsed"
-		class="flex flex-col gap-3 shadow-sm rounded-6 py-2.5 px-3 bg-surface-elevation-2 text-base"
+		class="flex flex-col gap-3 shadow-sm rounded-lg py-2.5 px-3 bg-surface-elevation-2 text-base"
 	>
 		<div v-if="stepsCompleted != totalSteps" class="inline-flex text-ink-gray-9 gap-2">
 			<StepsIcon class="h-4 my-0.5 shrink-0" />
@@ -22,8 +22,9 @@
 						{{ "You are all set" }}
 					</div>
 				</div>
-				<LucideX
-					class="size-4 cursor-pointer"
+				<FeatherIcon
+					name="x"
+					class="h-4 cursor-pointer"
 					@click="
 						() => {
 							showHelpCenter = true;
@@ -43,7 +44,7 @@
 			@click="openOnboarding"
 		>
 			<template #prefix>
-				<LucideChevronsRight class="size-4" />
+				<FeatherIcon name="chevrons-right" class="size-4" />
 			</template>
 		</Button>
 	</div>
@@ -52,9 +53,7 @@
 	</Button>
 </template>
 <script setup lang="ts">
-import { Button } from "frappe-ui";
-import LucideChevronsRight from "~icons/lucide/chevrons-right";
-import LucideX from "~icons/lucide/x";
+import { Button, FeatherIcon } from "frappe-ui";
 import { StepsIcon } from "frappe-ui/icons";
 import { useOnboarding } from "./onboarding";
 import { showHelpCenter } from "./helpCenter";

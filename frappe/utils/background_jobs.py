@@ -663,9 +663,6 @@ def create_job_id(job_id: str | None = None) -> str:
 	"""
 	Generate unique job id for deduplication
 
-	Idempotent: an id already namespaced for the current site is returned unchanged, so a
-	round-tripped id (e.g. `rq.job.Job.id`) can be passed straight back in.
-
 	:param job_id: Optional job id, if not provided, a UUID is generated for it
 	:return: Unique job id, namespaced by site
 	"""
@@ -674,8 +671,7 @@ def create_job_id(job_id: str | None = None) -> str:
 		job_id = str(uuid4())
 	else:
 		job_id = job_id.replace(":", "|")
-	site_prefix = f"{frappe.local.site}||"
-	namespaced_id = job_id if job_id.startswith(site_prefix) else site_prefix + job_id
+	namespaced_id = f"{frappe.local.site}||{job_id}"
 	assert "||" in namespaced_id, "namespaced job id must contain site separator '||'"
 	return namespaced_id
 
@@ -801,41 +797,3 @@ def _start_sentry():
 		integrations=integrations,
 		**kwargs,
 	)
-
-
-def mapreduce(
-	map_method: str | Callable,
-	reduce_method: str | Callable,
-	callback_method: str | Callable,
-	data: str,
-	document_type: str,
-	document_name: str,
-):
-	doc = frappe.new_doc("MapReduce Job")
-	doc.map = map_method
-	doc.reduce = reduce_method
-	doc.callback = callback_method
-	doc.data = frappe.json.dumps(data)
-	doc.document_type = document_type
-	doc.document_name = document_name
-	doc.insert().submit()
-	return doc
-
-
-def cancel_mapreduce_job(document_type: str, document_name: str):
-	jobs = frappe.db.get_all(
-		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
-	)
-	for j in jobs:
-		frappe.get_doc("MapReduce Job", j.name).cancel()
-
-
-def remove_mapreduce_job(document_type: str, document_name: str):
-	jobs = frappe.db.get_all(
-		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
-	)
-	for j in jobs:
-		doc = frappe.get_doc("MapReduce Job", j.name)
-		if not doc.docstatus.is_cancelled():
-			doc.cancel()
-		frappe.delete_doc("MapReduce Job", j.name, force=True, ignore_permissions=True)

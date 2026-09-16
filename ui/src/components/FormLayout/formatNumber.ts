@@ -302,9 +302,12 @@ function roundNumber(
     const floorNum = Math.floor(n);
     const decimalPart = n - floorNum;
     const epsilon = 2.0 ** (Math.log2(Math.abs(n)) - 52.0);
-    const isTie =
-      epsilon < 0.5 ? Math.abs(decimalPart - 0.5) < epsilon : decimalPart === 0.5;
-    n = isTie ? (floorNum % 2 === 0 ? floorNum : floorNum + 1) : Math.round(n);
+    n =
+      Math.abs(decimalPart - 0.5) < epsilon
+        ? floorNum % 2 === 0
+          ? floorNum
+          : floorNum + 1
+        : Math.round(n);
     n = n / multiplier;
     return isNegative ? -n : n;
   } else if (method === "Commercial Rounding") {
@@ -313,10 +316,8 @@ function roundNumber(
     const multiplier = Math.pow(10, digits);
     let n = num * multiplier;
     let epsilon = 2.0 ** (Math.log2(Math.abs(n)) - 52.0);
-    if (epsilon >= 0.25) {
-      epsilon = 0;
-    }
-    n = Math.sign(n) * Math.round(Math.abs(n) + epsilon);
+    if (isNegative) epsilon = -1 * epsilon;
+    n = Math.round(n + epsilon);
     return n / multiplier;
   }
   // Unknown method — fall back to legacy Banker's Rounding rather than crashing

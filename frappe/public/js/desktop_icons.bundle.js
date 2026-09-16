@@ -7,20 +7,6 @@
 // it out of desk.bundle also keeps about 1200 lines off every desk page load.
 import "./frappe/ui/desktop_icons_item.html";
 
-// One menu entry as a frappe.ui.Dropdown / frappe.ui.ContextMenu row.
-//
-// Rows apps contribute through `add_menu_item()` were written against the menu this page's menus
-// replaced, so its key names are still accepted alongside the component's own: `onClick` for
-// `onclick`, `url` for `href`. Labels arrive untranslated here, as they always have.
-function menu_row(item) {
-	const row = { label: __(item.label), icon: item.icon, condition: item.condition };
-	const href = item.href || item.url;
-	if (href) row.href = href;
-	const onclick = item.onclick || item.onClick;
-	if (onclick) row.onclick = onclick;
-	return row;
-}
-
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
 frappe.desktop_icons_objects = [];
@@ -310,32 +296,32 @@ class DesktopPage {
 	}
 	setup_context_menu() {
 		const me = this;
-		new frappe.ui.ContextMenu({
-			target: this.wrapper,
-			options: [
-				{
-					label: __("Edit Layout"),
-					icon: "edit",
-					condition: function () {
-						return !me.edit_mode;
-					},
-					onclick: function () {
-						me.$desktop_edit_button.hide();
-						frappe.new_desktop_icons = JSON.parse(
-							JSON.stringify(frappe.desktop_icons)
-						);
-						me.start_editing_layout();
-					},
+		let menu_items = [
+			{
+				label: "Edit Layout",
+				icon: "edit",
+				condition: function () {
+					return !me.edit_mode;
 				},
-				{
-					label: __("Reset Layout"),
-					icon: "rotate-ccw",
-					onclick: function () {
-						reset_to_default();
-						me.update();
-					},
+				onClick: function () {
+					me.$desktop_edit_button.hide();
+					frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
+					me.start_editing_layout();
 				},
-			],
+			},
+			{
+				label: "Reset Layout",
+				icon: "rotate-ccw",
+				onClick: function () {
+					reset_to_default();
+					me.update();
+				},
+			},
+		];
+		frappe.ui.create_menu({
+			parent: this.wrapper,
+			menu_items: menu_items,
+			right_click: true,
 		});
 	}
 	stop_editing_layout(action) {
@@ -463,28 +449,28 @@ class DesktopPage {
 			{
 				icon: is_dark ? "sun" : "moon",
 				label: "Toggle Theme",
-				onclick: function () {
+				onClick: function () {
 					new frappe.ui.ThemeSwitcher().show();
 				},
 			},
 			{
 				icon: "info",
 				label: "About",
-				onclick: function () {
+				onClick: function () {
 					return frappe.ui.toolbar.show_about();
 				},
 			},
 			{
 				icon: "life-buoy",
 				label: "Frappe Support",
-				onclick: function () {
+				onClick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
 				},
 			},
 			{
 				icon: "rotate-ccw",
 				label: "Reset Desktop Layout",
-				onclick: function () {
+				onClick: function () {
 					reset_to_default();
 					window.location.reload();
 				},
@@ -492,19 +478,19 @@ class DesktopPage {
 			{
 				icon: "log-out",
 				label: "Logout",
-				onclick: function () {
+				onClick: function () {
 					frappe.app.logout();
 				},
 			},
 		];
 		if (this.desktop_menu_items && this.desktop_menu_items.length)
 			menu_items = [...menu_items, ...this.desktop_menu_items];
-		new frappe.ui.Dropdown({
-			trigger: $(".desktop-avatar"),
-			// The avatar sits at the end of the header, so the menu hangs back under it.
-			// "end" is the logical edge, which the component mirrors under RTL.
-			align: "end",
-			options: menu_items.map(menu_row),
+		frappe.ui.create_menu({
+			parent: $(".desktop-avatar"),
+			menu_items: menu_items,
+			// If it's RTL, we want it to open on the right (false);
+			// if it's LTR, we want it to open on the left (true).
+			open_on_left: !frappe.utils.is_rtl(),
 		});
 	}
 	add_menu_item(item) {
@@ -973,16 +959,17 @@ class DesktopIcon {
 		const me = frappe.pages["desktop"].desktop_page;
 		let icon_data = this.icon_data;
 		const icon = this;
-		new frappe.ui.ContextMenu({
-			target: this.icon,
-			options: [
+		frappe.ui.create_menu({
+			parent: this.icon,
+			right_click: true,
+			menu_items: [
 				{
-					label: __("Edit"),
+					label: "Edit",
 					icon: "edit",
 					condition: function () {
 						return icon_data.standard != 1;
 					},
-					onclick: function () {
+					onClick: function () {
 						frappe.ui.form.make_quick_entry(
 							"Desktop Icon",
 							function (icon) {
@@ -1009,29 +996,27 @@ class DesktopIcon {
 					},
 				},
 				{
-					label: __("Create Folder"),
+					label: "Create Folder",
 					icon: "folder",
-					onclick: function () {
+					onClick: function () {
 						let folder = me.icon_grid.add_folder();
 						add_icons_to_folder(folder.label, [icon_data.label]);
 					},
 				},
 				{
-					label: __("Add To Folder"),
+					label: "Add To Folder",
 					icon: "folder-open",
 					condition: function () {
 						return me.folders.length > 0;
 					},
-					// Read at hover, so the list is the folders that exist when the menu is
-					// opened rather than the ones that existed when the icon was drawn.
-					// The folder each row adds to is the one it closes over: a row handler is
-					// called with no receiver, so the `this.label` this used to read was never
-					// the row.
-					submenu: () =>
-						me.folders.map((name) => ({
+					items: me.folders.map((name) => {
+						return {
 							label: name,
-							onclick: () => add_icons_to_folder(name, [icon_data.label]),
-						})),
+							onClick: function () {
+								add_icons_to_folder(this.label, [icon_data.label]);
+							},
+						};
+					}),
 				},
 			],
 		});

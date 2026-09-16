@@ -72,9 +72,6 @@ its parent has a height. In a flex column (`flex h-full flex-col`) it takes the 
 space between siblings; in any other bounded parent it fills it. Equivalent to putting
 `flex-1 min-h-0` on the timeline yourself — use whichever reads better.
 
-It also fades the top and bottom edges so rows don't cut off hard against the header and
-composer; pass `:fade="false"` to turn that off.
-
 ```vue
 <div class="flex h-full flex-col">
   <TicketHeader />
@@ -385,8 +382,8 @@ import LucideReply from "~icons/lucide/reply";
     <template #item-comment="{ activity }">
       <CommentItem :comment="activity">
         <template #actions>
-          <Button variant="ghost" icon="lucide-pencil" @click="onEdit(activity)" />
-          <Button variant="ghost" icon="lucide-trash-2" @click="onDelete(activity)" />
+          <Button variant="ghost" icon="edit-2" @click="onEdit(activity)" />
+          <Button variant="ghost" icon="trash-2" @click="onDelete(activity)" />
         </template>
       </CommentItem>
     </template>
@@ -486,7 +483,7 @@ function onSave(activity, content: string) {
         <template #actions>
           <Button
             variant="ghost"
-            icon="lucide-pencil"
+            icon="edit-2"
             @click="editingKey = activity.key"
           />
         </template>

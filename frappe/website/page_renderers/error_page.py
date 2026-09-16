@@ -20,4 +20,3 @@ class ErrorPage(TemplatePage):
 		)
 		self.context.title = self.title or getattr(self.exception, "title", None)
 		self.context.message = self.message or getattr(self.exception, "message", None)
-		self.context.command = getattr(self.exception, "command", None)

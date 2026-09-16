@@ -51,17 +51,11 @@ describe("fieldTypes registry", () => {
     }
   });
 
-  it("resolves the code-family fieldtypes to CodeEditorField", async () => {
+  it("resolves the code-family fieldtypes to CodeEditorField", () => {
     // JSON / Markdown Editor / HTML Editor / Code share one CodeMirror-backed
-    // field (moved off TextareaField). It's registered lazily, so the registry
-    // holds Vue's async wrapper — unwrap it to assert the field it resolves to.
-    const lazyCodeEditorField = getFieldComponent("Code") as {
-      __asyncLoader: () => Promise<unknown>;
-    };
-    expect(await lazyCodeEditorField.__asyncLoader()).toBe(CodeEditorField);
-
-    for (const t of ["JSON", "Markdown Editor", "HTML Editor"]) {
-      expect(getFieldComponent(t)).toBe(lazyCodeEditorField);
+    // field (moved off TextareaField).
+    for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {
+      expect(getFieldComponent(t)).toBe(CodeEditorField);
     }
   });
 

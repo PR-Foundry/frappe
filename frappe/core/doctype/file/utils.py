@@ -4,7 +4,7 @@ import os
 import re
 from binascii import Error as BinasciiError
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote, urljoin
 
 import filetype
@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 	from PIL.ImageFile import ImageFile
 	from requests.models import Response
 
-	from frappe.core.doctype.docfield.docfield import DocField
 	from frappe.model.document import Document
 
 	from .file import File
@@ -358,80 +357,41 @@ def attach_files_to_document(doc: "Document", event) -> None:
 	the file to the document if not already attached. If no file is found, a new file
 	is created.
 	"""
-	candidates: list[tuple["DocField", Any]] = []
 
-	# this method runs in on_update hook of all documents
-	# we dont want the update to fail if file cannot be attached for some reason
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+
 	for df in attach_fields:
-		candidates.append((df, doc.get(df.fieldname)))
-
-	table_fields = doc.meta.get("fields", {"fieldtype": "Table"})
-	for table_df in table_fields:
-		child_rows = doc.get(table_df.fieldname) or []
-		if not child_rows:
+		# this method runs in on_update hook of all documents
+		# we dont want the update to fail if file cannot be attached for some reason
+		value = doc.get(df.fieldname)
+		if not (value or "").startswith(("/files", "/private/files", "http://", "https://")):
 			continue
 
-		child_meta = frappe.get_meta(table_df.options)
-		child_attach_fields = child_meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
-		if not child_attach_fields:
-			continue
-
-		for child_row in child_rows:
-			for child_df in child_attach_fields:
-				candidates.append((child_df, child_row.get(child_df.fieldname)))
-
-	_attach_field_values(doc, candidates)
-
-
-def _attach_field_values(doc: "Document", candidates: list[tuple["DocField", Any]]) -> None:
-	valid = [
-		(df, value)
-		for df, value in candidates
-		if (value or "").startswith(("/files", "/private/files", "http://", "https://"))
-	]
-	if not valid:
-		return
-
-	values = list({value for _, value in valid})
-	already_attached = {
-		(row.file_url, row.attached_to_field)
-		for row in frappe.get_all(
+		if frappe.db.exists(
 			"File",
-			filters={
-				"attached_to_doctype": doc.doctype,
+			{
+				"file_url": value,
 				"attached_to_name": doc.name,
-				"file_url": ["in", values],
+				"attached_to_doctype": doc.doctype,
+				"attached_to_field": df.fieldname,
 			},
-			fields=["file_url", "attached_to_field"],
-		)
-	}
+		):
+			continue
 
-	remaining = [(df, value) for df, value in valid if (value, df.fieldname) not in already_attached]
-	if not remaining:
-		return
-
-	remaining_values = list({value for _, value in remaining})
-	orphan_by_url = {
-		row.file_url: row.name
-		for row in frappe.get_all(
+		unattached_file = frappe.db.exists(
 			"File",
-			filters={
-				"attached_to_doctype": ["is", "not set"],
-				"attached_to_name": ["is", "not set"],
-				"attached_to_field": ["is", "not set"],
-				"file_url": ["in", remaining_values],
-				"owner": frappe.session.user,
+			{
+				"file_url": value,
+				"attached_to_name": None,
+				"attached_to_doctype": None,
+				"attached_to_field": None,
 			},
-			fields=["name", "file_url"],
 		)
-	}
 
-	for df, value in remaining:
-		if orphan_name := orphan_by_url.get(value):
+		if unattached_file:
 			frappe.db.set_value(
 				"File",
-				orphan_name,
+				unattached_file,
 				field={
 					"attached_to_name": doc.name,
 					"attached_to_doctype": doc.doctype,

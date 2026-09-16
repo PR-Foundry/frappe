@@ -31,7 +31,6 @@ frappe.ui.form.on("Website Settings", {
 
 	onload_post_render: function (frm) {
 		frm.trigger("set_parent_label_options");
-		frm.trigger("set_parent_label_options_footer");
 	},
 
 	set_parent_label_options: function (frm) {

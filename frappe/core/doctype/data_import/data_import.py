@@ -222,7 +222,12 @@ def start_import(data_import):
 	# Apply same delimiter/sniffer settings as preview so CSV is parsed correctly (e.g. EU ";" delimiter)
 	data_import.set_delimiters_flag()
 	try:
-		data_import.get_importer().import_data()
+		i = Importer(
+			data_import.reference_doctype,
+			data_import=data_import,
+			use_sniffer=data_import.use_csv_sniffer,
+		)
+		i.import_data()
 	except JobTimeoutException:
 		frappe.db.rollback()
 		data_import.db_set("status", "Timed Out")

@@ -42,13 +42,12 @@
   },
   {
    "default": "0",
-   "description": "Counters are tracked per resolved prefix in the Series doctype. This field is retained for reference only.",
+   "description": "Warning: Updating counter may lead to document name conflicts if not done properly",
    "fieldname": "counter",
    "fieldtype": "Int",
-   "hidden": 1,
+   "in_list_view": 1,
    "label": "Counter",
-   "no_copy": 1,
-   "read_only": 1
+   "no_copy": 1
   },
   {
    "default": "5",

@@ -11,7 +11,6 @@ from frappe.integrations.doctype.social_login_key.test_social_login_key import (
 )
 from frappe.integrations.doctype.token_cache.token_cache import TokenCache
 from frappe.tests import IntegrationTestCase
-from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
 
 def get_user(usr, pwd):
@@ -46,13 +45,11 @@ def get_oauth_client():
 	oauth_client.grant_type = "Authorization Code"
 	oauth_client.response_type = "Code"
 	oauth_client.skip_authorization = 1
-	oauth_client.token_endpoint_auth_method = "Client Secret Post"
 	oauth_client.insert()
 
 	return oauth_client
 
 
-@requires_test_service(TestService.WEB_SERVER)
 class TestConnectedApp(IntegrationTestCase):
 	def setUp(self):
 		"""Set up a Connected App that connects to our own oAuth provider.

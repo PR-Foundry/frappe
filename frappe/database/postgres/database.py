@@ -31,7 +31,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 import frappe
 from frappe.database.database import CREATE_OR_DROP, Database
 from frappe.database.postgres.schema import PostgresTable
-from frappe.database.utils import EmptyQueryValues, LazyDecode, convert_backtick_identifiers
+from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
@@ -410,9 +410,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
 
 	def describe(self, doctype: str) -> list | tuple:
+		table_name = get_table_name(doctype)
 		return self.sql(
-			"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = %(table_name)s AND table_schema = %(schema)s",
-			{"table_name": get_table_name(doctype), "schema": self.db_schema},
+			f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}' and table_schema='{frappe.conf.get('db_schema', 'public')}'"
 		)
 
 	def change_column_type(
@@ -668,8 +668,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		# Only plain btree indexes count: a partial, covering or non-btree index cannot be the
 		# framework-managed search index, so reporting it here would both suppress creating the
 		# real one and mark a hand-made index as framework-owned and droppable.
+		# pylint: disable=W1401
 		return self.sql(
-			"""
+			f"""
 			SELECT a.column_name AS name,
 			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
@@ -694,16 +695,15 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				JOIN pg_am am ON am.oid = ic.relam
 				JOIN pg_namespace n ON n.oid = tc.relnamespace
 				JOIN pg_attribute att ON att.attrelid = tc.oid AND att.attnum = i.indkey[0]
-				WHERE tc.relname = %(table_name)s AND n.nspname = %(schema)s
+				WHERE tc.relname = '{table_name}' AND n.nspname = '{self.db_schema}'
 					AND am.amname = 'btree'
 					AND i.indpred IS NULL
 					AND i.indnatts = i.indnkeyatts
 			) b ON b.column_name = a.column_name
-			WHERE a.table_name = %(table_name)s
-				AND a.table_schema = %(schema)s
+			WHERE a.table_name = '{table_name}'
+				AND a.table_schema = '{self.db_schema}'
 			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale, a.datetime_precision;
 		""",
-			{"table_name": table_name, "schema": self.db_schema},
 			as_dict=1,
 		)
 
@@ -729,13 +729,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def _estimate_count(self, table: str) -> int:
 		from frappe.utils.data import cint
 
-		# Scope to current schema to avoid cross-site estimates.
-		# reltuples is -1 until the table has been vacuumed or analyzed.
+		# Scope to current schema to avoid cross-site estimates
 		count = self.sql(
 			"select c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relname = %s and n.nspname = %s and c.relkind = 'r'",
 			(table, self.db_schema),
 		)
-		return max(cint(count[0][0]), 0) if count else 0
+		return cint(count[0][0]) if count else 0
 
 	@contextmanager
 	def unbuffered_cursor(self):
@@ -880,8 +879,8 @@ def _copy_flush(cursor, copy_sql, buffer):
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
-	# replace ` with " only where a backtick delimits an identifier
-	query = convert_backtick_identifiers(str(query))
+	# replace ` with " for definitions
+	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
 	# MySQL REGEXP operator -> postgres case-insensitive regex match
 	query = REGEXP_PATTERN.sub(_replace_regexp_operator, query)
@@ -902,9 +901,6 @@ def modify_values(values):
 	def modify_value(value):
 		if isinstance(value, list | tuple):
 			value = tuple(modify_values(value))
-
-		elif isinstance(value, bool):
-			value = str(int(value))
 
 		elif isinstance(value, int):
 			value = str(value)

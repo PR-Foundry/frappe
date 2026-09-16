@@ -8,26 +8,26 @@
 				:debounce="300"
 			>
 				<template #prefix>
-					<LucideSearch class="size-4 text-ink-gray-5" />
+					<FeatherIcon name="search" class="h-4 text-ink-gray-5" />
 				</template>
 			</TextInput>
 		</div>
 		<div class="flex justify-between items-center text-base text-ink-gray-5 mx-2">
 			<div>All articles</div>
 			<Button variant="ghost" @click="openDocs">
-				<LucideArrowUpRight class="size-4 text-ink-gray-5" />
+				<FeatherIcon name="arrow-up-right" class="h-4 text-ink-gray-5" />
 			</Button>
 		</div>
 		<div class="flex flex-col gap-1.5 overflow-y-auto">
 			<div v-for="a in parsedArticles" :key="a.title" class="flex flex-col gap-1.5">
 				<div
-					class="flex items-center justify-between p-1.5 hover:bg-surface-gray-1 rounded-4 cursor-pointer"
+					class="flex items-center justify-between p-1.5 hover:bg-surface-gray-1 rounded cursor-pointer"
 					@click="a.opened = !a.opened"
 				>
 					<div class="flex items-center gap-2">
-						<component
-							:is="a.opened ? LucideChevronDown : LucideChevronRight"
-							class="size-4 text-ink-gray-5"
+						<FeatherIcon
+							:name="a.opened ? 'chevron-down' : 'chevron-right'"
+							class="h-4 text-ink-gray-5"
 						/>
 						<div class="text-base text-ink-gray-8">{{ a.title }}</div>
 					</div>
@@ -36,17 +36,18 @@
 					<div
 						v-for="subArticle in a.subArticles"
 						:key="subArticle.name"
-						class="group flex items-center justify-between gap-2 p-1.5 hover:bg-surface-gray-1 rounded-4 cursor-pointer"
+						class="group flex items-center justify-between gap-2 p-1.5 hover:bg-surface-gray-1 rounded cursor-pointer"
 						@click="() => openDoc(subArticle.name)"
 					>
 						<div class="flex items-center gap-2">
-							<LucideFileText class="size-4 text-ink-gray-5" />
+							<FeatherIcon name="file-text" class="h-4 text-ink-gray-5" />
 							<div class="text-base text-ink-gray-8">
 								{{ subArticle.title }}
 							</div>
 						</div>
-						<LucideArrowUpRight
-							class="size-4 hidden group-hover:flex text-ink-gray-5"
+						<FeatherIcon
+							name="arrow-up-right"
+							class="h-4 hidden group-hover:flex text-ink-gray-5"
 						/>
 					</div>
 				</div>
@@ -55,12 +56,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { Button, TextInput } from "frappe-ui";
-import LucideArrowUpRight from "~icons/lucide/arrow-up-right";
-import LucideChevronDown from "~icons/lucide/chevron-down";
-import LucideChevronRight from "~icons/lucide/chevron-right";
-import LucideFileText from "~icons/lucide/file-text";
-import LucideSearch from "~icons/lucide/search";
+import { Button, FeatherIcon, TextInput } from "frappe-ui";
 import { ref, computed, onMounted } from "vue";
 import type { HelpArticle, HelpCenterProps } from "./types";
 

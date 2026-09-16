@@ -127,9 +127,7 @@ class WebPage(WebsiteGenerator):
 			frappe.flags.web_block_scripts = {}
 			frappe.flags.web_block_styles = {}
 			try:
-				context["main_section"] = render_template(
-					context.main_section, context, restrict_globals=True
-				)
+				context["main_section"] = render_template(context.main_section, context)
 				if "<!-- static -->" not in context.main_section:
 					context["no_cache"] = 1
 			except TemplateSyntaxError:

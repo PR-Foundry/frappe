@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Phone } from "../index";
+import { PhoneInput } from "frappe-ui";
 
 const phone = ref("+91-9876543210");
 
@@ -11,9 +11,9 @@ const isVerified = computed(() => {
 </script>
 
 <template>
-	<Phone v-model="phone" label="WhatsApp number" class="w-72">
+	<PhoneInput v-model="phone" label="WhatsApp number" class="w-72">
 		<template #suffix>
 			<span v-if="isVerified" class="lucide-circle-check size-4 text-ink-green-3" />
 		</template>
-	</Phone>
+	</PhoneInput>
 </template>

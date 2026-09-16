@@ -41,12 +41,12 @@
 				>
 					{{ textContent }}
 				</div>
-				<img v-else-if="preview === 'image'" :src="url" class="m-auto rounded-4 border" />
+				<img v-else-if="preview === 'image'" :src="url" class="m-auto rounded border" />
 				<video
 					v-else-if="preview === 'video'"
 					:src="url"
 					controls
-					class="m-auto max-h-[70vh] rounded-4 border"
+					class="m-auto max-h-[70vh] rounded border"
 				/>
 			</template>
 		</Dialog>

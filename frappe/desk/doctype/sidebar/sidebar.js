@@ -22,7 +22,7 @@ frappe.ui.form.on("Sidebar", {
 					),
 					() =>
 						frappe
-							.xcall(`${API}.unmark_as_standard`, { sidebar: frm.doc.name })
+							.xcall(`${API}.unmark_as_standard`, { module: frm.doc.module })
 							// the document is gone, so there is nothing left to reload into
 							.then(() => frappe.set_route("List", "Sidebar"))
 				);

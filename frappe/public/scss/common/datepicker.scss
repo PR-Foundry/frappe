@@ -2,6 +2,7 @@
 // minifier dedupes identical legal comments, which would break begin/end pairing.
 /*!rtl:begin:ignore:datepicker*/
 @import "~air-datepicker/dist/css/datepicker.min";
+/*!rtl:end:ignore:datepicker*/
 
 .datepicker {
 	direction: ltr;
@@ -120,5 +121,3 @@
 		}
 	}
 }
-
-/*!rtl:end:ignore:datepicker*/

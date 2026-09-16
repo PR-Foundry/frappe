@@ -11,7 +11,6 @@ from frappe.database.database import (
 	ImplicitCommitError,
 )
 from frappe.database.sqlite.schema import SQLiteTable
-from frappe.database.utils import convert_backtick_identifiers
 from frappe.utils import get_table_name
 
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
@@ -547,7 +546,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.transaction_writes = 0
 		self.begin()  # explicitly start a new transaction
 
-		self.run_after_transaction_callbacks(self.after_commit)
+		self.after_commit.run()
 
 	def rollback(self, *, save_point=None, chain=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
@@ -564,7 +563,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._conn.rollback()
 			self.begin()
 
-			self.run_after_transaction_callbacks(self.after_rollback)
+			self.after_rollback.run()
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
@@ -609,9 +608,9 @@ def modify_query(query):
 	"""
 	Modifies query according to the requirements of SQLite
 	"""
-	# Replace ` with " only where a backtick delimits an identifier
+	# Replace ` with " for definitions
 	query = str(query)
-	query = convert_backtick_identifiers(query)
+	query = query.replace("`", '"')
 	query = replace_locate_with_instr(query)
 
 	# Select from requires ""

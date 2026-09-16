@@ -1,9 +1,7 @@
 frappe.ui.LinkPreview = class {
 	constructor() {
 		this.popovers_list = [];
-		// tree labels carry their own hover card (frappe.ui.Tree)
-		this.LINK_CLASSES =
-			'a[data-doctype]:not(.tree-label), input[data-fieldtype="Link"], .popover';
+		this.LINK_CLASSES = 'a[data-doctype], input[data-fieldtype="Link"], .popover';
 		this.popover_timeout = null;
 		this.setup_events();
 	}
